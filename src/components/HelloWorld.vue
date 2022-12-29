@@ -1,58 +1,72 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+<!--    <ul>-->
+<!--      <li v-bind:key="item.id" v-for="item in fileInfos" @click="selectFile(item)">{{item.name}}</li>-->
+<!--    </ul>-->
+  <el-input v-model="dirPath" placeholder="Please input" />
+  <el-button type="primary" @click="searchDir">Primary</el-button>
+  <el-table :data="fileInfos" style="width: 100%"  @row-click="selectFile" >
+    <el-table-column prop="name" label="文件名" />
+  </el-table>
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
+  data(){
+    return {
+      dirPath: "",
+      fileInfos: []
+    }
+  },
+  methods: {
+    searchDir(){
+      console.log(this.dirPath)
+      if(this.dirPath == "" || this.dirPath == null){
+        return;
+      }
+      this.searchDirApi(this.dirPath)
+    },
+    searchDirApi(dirPath){
+      axios.postForm("/getDirFiles",{
+        dirPath: dirPath
+      }).then((res) => {
+        console.log(res)
+        // eslint-disable-next-line vue/no-mutating-props
+        this.fileInfos = res.data
+      }).catch((err) => {
+        console.log(err)
+      })
+    },
+    selectFile(file){
+      console.log(file.path)
+      console.log(file.file)
+      if(file.file){ //下载文件
+        axios.postForm("/downFile",{
+          filePath: file.path
+        },{
+          responseType: "blob"
+        }).then((res) => {
+          console.log(res);
+          let blob = new Blob([res.data]);
+          let url = window.URL.createObjectURL(blob); // 创建 url 并指向 blob
+          let a = document.createElement('a');
+          a.href = url;
+          a.download = file.name;
+          a.click();
+          window.URL.revokeObjectURL(url); // 释放该 url
+        }).catch((err) => {
+          console.log(err)
+        })
+      }else { //获取目录下的文件
+       this.searchDirApi(file.path)
+      }
+    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+
 </style>

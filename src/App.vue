@@ -1,6 +1,5 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <HelloWorld />
 </template>
 
 <script>
@@ -10,6 +9,22 @@ export default {
   name: 'App',
   components: {
     HelloWorld
+  },
+  data(){
+    return {
+      fileInfos: [
+        {
+          name: "uTools_1662617250712.png",
+          path: "C:\\Users\\binbin\\OneDrive\\3资料Resource\\政保\\云连接\\uTools_1662617250712.png",
+          isFile: true
+        },
+        {
+          name: "云连接",
+          path: "C:\\Users\\binbin\\OneDrive\\3资料Resource\\政保\\云连接",
+          isFile: false
+        }
+      ]
+    }
   }
 }
 </script>
